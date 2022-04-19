@@ -6,6 +6,9 @@ from threading import Thread
 PUBLIC_RANGE = (50000, 50009)
 public_rooms = []
 
+# Address to broadcast to. Mainly used for debugging.
+BROADCAST = '255.255.255.255'
+
 # Keeps out and inp global in order to allow global access (go figure)
 out = None
 inp = None
@@ -24,7 +27,7 @@ def join(port):
 
     # Broadcasts data
     def broadcast(message):
-        b.sendto(message.encode(), ('255.255.255.255', port))
+        b.sendto(message.encode(), (BROADCAST, port))
 
     # Constantly receives and outputs data.
     def receiver():
@@ -37,14 +40,13 @@ def join(port):
                 out.send(data[0].decode())
 
     # Grabs nickname from user.
-    out.send('Enter your nickname.')
+    out.send('Enter your nickname.\n')
     nickname = inp.input()
 
     # Starts receiving messages
     Thread(target=receiver).start()
 
-    out.send('Joined room.\n')
-
+    broadcast(f'{nickname} joined the room.')
     while True:
         broadcast(f'{nickname}: {inp.input()}')
 
@@ -64,7 +66,7 @@ def ping_range(low, high):
         r.bind(('0.0.0.0', port))
 
         # Sends ping and receives it, so it doesn't create interference when it receives from other pings.
-        b.sendto('ping'.encode(), ('255.255.255.255', port))
+        b.sendto('ping'.encode(), (BROADCAST, port))
 
         r.settimeout(2)
         r.recvfrom(1024)
@@ -222,13 +224,13 @@ def main(_):
         out.send(f'> {command}')
 
         if command == 'help':
-            out.send("""Help Commands
+            out.send('''Help Commands
 
 rooms                  Lists all public occupied rooms
 join <room number>     Joins a specific room
 
 help                   Prints this table
-""")
+''')
         elif command == 'rooms':
             rooms = ping_range(PUBLIC_RANGE[0], PUBLIC_RANGE[1])
             out.send('\n'.join(rooms) + '\n' if len(rooms) > 0 else 'No occupied rooms.\n')
