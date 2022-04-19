@@ -22,14 +22,19 @@ def join(port):
     r = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     r.bind(('0.0.0.0', port))
 
-    # Constantly receives and outputs data.
-    def receiver():
-        while True:
-            out.send(r.recvfrom(1024)[0].decode())
-
     # Broadcasts data
     def broadcast(message):
         b.sendto(message.encode(), ('255.255.255.255', port))
+
+    # Constantly receives and outputs data.
+    def receiver():
+        while True:
+            data = r.recvfrom(1024)
+
+            if data[0].decode == 'ping':
+                broadcast('pong')
+            elif data[0].decode != 'pong':
+                out.send(data[0].decode())
 
     # Grabs nickname from user.
     out.send('Enter your nickname.')
