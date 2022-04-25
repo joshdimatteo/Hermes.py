@@ -34,9 +34,9 @@ def join(port):
         while True:
             data = r.recvfrom(1024)
 
-            if data[0].decode == 'ping':
+            if data[0].decode() == 'ping':
                 broadcast('pong')
-            elif data[0].decode != 'pong':
+            elif data[0].decode() != 'pong':
                 out.send(data[0].decode())
 
     # Grabs nickname from user.
